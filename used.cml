@@ -2,7 +2,6 @@ fastqc -o /public/home/wyyy/HPV/WGBS/fastqc/trim_fastqc -t 6 /public/home/wyyy/H
 java -jar /public/home/wyyy/miniconda3/pkgs/trimmomatic-0.39-hdfd78af_2/share/trimmomatic-0.39-2/trimmomatic.jar PE -phred33 /public/home/xzeng/project/tongji/multi_omics/raw_data/berry/WGBS/200902_A00403_0431_AHCW7FDSXY/WPP038_L4_X01301.R1.fastq.gz /public/home/xzeng/project/tongji/multi_omics/raw_data/berry/WGBS/200902_A00403_0431_AHCW7FDSXY/WPP038_L4_X01301.R1.fastq.gz WPP038_L4_X01301.R1.paired.fq.gz WPP038_L4_X01301.R1.unpaired.fq.gz WPP038_L4_X01301.R2.paired.fq.gz WPP038_L4_X01301.R2.unpaired.fq.gz ILLUMINACLIP:/public/home/wyyy/miniconda3/pkgs/trimmomatic-0.39-hdfd78af_2/share/trimmomatic-0.39-2/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:60
 multiqc /public/home/wyyy/HPV/WGBS/fastqc/trim_fastqc/*.zip
 
-#bismarks比对
 bismark_genome_preparation hg19
 bismark_genome_preparation
 		--path_to_aligner /public/home/wyyy/miniconda3/envs/bioinfo/bin/bowtie2
