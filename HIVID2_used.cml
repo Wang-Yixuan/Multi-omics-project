@@ -1,10 +1,10 @@
 perl /public/home/xzeng/project/HIVID2_paper/HIVID2.1/main.pl -o /public/home/wyyy/HPV/HIVID2 -l /public/home/wyyy/HPV/HIVID2/list -c /public/home/xzeng/project/HIVID2_paper/shenchenh/HBV_HIVID2.1/HBV_HIVID2.1/HBV_HIVID2.1/ConfigHPV83_hg38 -stp 2
 perl /public/home/xzeng/project/HIVID2_paper/HIVID2.1/main.pl -o /public/home/wyyy/HPV/HIVID2 -l /public/home/wyyy/HPV/HIVID2/list -c /public/home/wyyy/HPV/HIVID2/ConfigHPV83_hg38 -stp 3
 perl /public/home/xzeng/project/HIVID2_paper/HIVID2.1/main.pl -o /public/home/wyyy/HPV/HIVID2 -l /public/home/wyyy/HPV/HIVID2/list -c /public/home/wyyy/HPV/HIVID2/ConfigHPV83_hg38 -stp 4 -filter -fa1 /public/home/xzeng/project/genome_ref/UCSC/hg38/chroms/bwa/hg38.fa -fa2 /public/home/xzeng/project/genome_ref/hpvall/bwa/hpvall.fa
-#把step4的脚本文件中换成Python2.7运行，注意sed中的分隔符问题
+
 sed -i "s|python|/public/home/wyyy/miniconda3/envs/py27/bin/python|g" ./*/*.sh
 sed -i "s|/public/home/xzeng/project/HIVID2_paper/shenchenh/HBV_HIVID2.1/HBV_HIVID2.1/HBV_HIVID2.1/breakpiont_discordant-rd_v1.2.pl|/public/home/xzeng/project/HIVID2_paper/HIVID2.1/breakpiont_discordant-rd_v1.2.pl|g" ./step4/*/*.sh
-#把所有样本断点分为tumor和normal分别整合到两个文件中（生成后要去除表头）
+
 sh ../all_human_bk.sh
 sed -e '/ref/d' tumor.bk > tumor.bk.removeHead
 sed -e '/ref/d' normal.bk > normal.bk.removeHead
@@ -14,16 +14,14 @@ python3 filter_reads.py
 #perl -lane 'next if($F[1]=~/chrX/ || $F[1]=~/chrY/ || $F[1]=~/chrM/); print if($F[10]>=1)' tumor.bk.removeHead.pass1 > tumor.bk.result
 #perl -lane 'next if($F[1]=~/chrX/ || $F[1]=~/chrY/ || $F[1]=~/chrM/); print if($F[10]>=1)' normal.bk.removeHead.pass1 > normal.bk.result
 
-#ANNOVAR下载数据库，只下载了refGene，存在humandb中
 perl annotate_variation.pl -buildver hg38 -downdb -webfrom annovar refGene humandb/
-#把HIVID2结果整理成ANNOVAR输入格式，最后两列只为了符合格式起到占位作用没有实际意义
+
 perl -alne '{print "$F[1]\t$F[2]\t$F[2]\tG\tA"}' normal.result1 > normal.avinput
 perl -alne '{print "$F[1]\t$F[2]\t$F[2]\tG\tA"}' tumor.result1 > tumor.avinput
 perl table_annovar.pl /public/home/wyyy/HPV/HIVID2/tumor.avinput humandb/ -buildver hg38 -out /public/home/wyyy/HPV/HIVID2/tumor -remove -protocol refGene -operation g -nastring .
 perl table_annovar.pl /public/home/wyyy/HPV/HIVID2/normal.avinput humandb/ -buildver hg38 -out /public/home/wyyy/HPV/HIVID2/normal -remove -protocol refGene -operation g -nastring .
 python3 disposal.py
 
-#ANNOVAR建立HPV16数据库
 conda install gffread
 conda install ucsc-gtftogenepred
 gffread hpv16.gff3 -T -o hpv16.gtf
@@ -32,18 +30,17 @@ perl retrieve_seq_from_fasta.pl --format refGene --seqfile ../hpv16.fa ../hpv16_
 perl annotate_variation.pl -geneanno -dbtype refGene -out /public/home/wyyy/HPV/HIVID2/hpv16.T -build hpv16 /public/home/wyyy/HPV/HIVID2/HPV.T.avinput HPVdb/
 perl annotate_variation.pl -geneanno -dbtype refGene -out /public/home/wyyy/HPV/HIVID2/hpv16.N -build hpv16 /public/home/wyyy/HPV/HIVID2/HPV.N.avinput HPVdb/
 
-#依据匹配reads过滤HPV断点
-python HBV_align2Human.py  #生成的结果文件*.aligned去掉reads ID为*.noreadsID
 
-#human与virus进行reads匹配
+python HBV_align2Human.py
+
+
 python align_reads.py
-uniq HPV2human_reads.circos.txt > HPV2human_reads.circos.duplica.txt #circos输入文件
-sort HPV2human_reads.position.txt | uniq > HPV2human_reads.position.duplica.txt #断点配对
+uniq HPV2human_reads.circos.txt > HPV2human_reads.circos.duplica.txt
+sort HPV2human_reads.position.txt | uniq > HPV2human_reads.position.duplica.txt
 
-#所有断点注释信息合并
-#normal.bk.removeHead_nofilter.final去表头
+
 paste normal.bk.removeHead_nofilter.final normal.bk.removeHead > normal.bk.removeHead_nofilter.final2
 paste tumor.bk.removeHead_nofilter.final tumor.bk.removeHead > tumor.bk.removeHead_nofilter.final2
 awk -F "\t" -v OFS="\t" '{print $5,$1,$2,$3,$4,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18}' normal.bk.removeHead_nofilter.final2 > normal.bk.removeHead_nofilter.final3
 awk -F "\t" -v OFS="\t" '{print $5,$1,$2,$3,$4,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18}' tumor.bk.removeHead_nofilter.final2 > tumor.bk.removeHead_nofilter.final3
-#tumor.bk.removeHead_nofilter.final3加表头
+
